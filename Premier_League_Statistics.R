@@ -3,4 +3,4 @@
 
 getwd()
 
-print(read.csv("accurate_cross_team.csv"))
+print(read.csv("data/accurate_cross_team.csv"))
