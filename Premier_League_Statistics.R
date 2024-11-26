@@ -71,7 +71,6 @@ pl_table_2023_24 <- pl_table_2023_24[order(pl_table_2023_24$name), ]
 
 #Load CSV with premier league table based on away matches  
 away_matches_based_table <- read.csv("data/pl_table_away_2023_24.csv")
-away_matches_based_table
 away_matches_based_table <- away_matches_based_table[order(away_matches_based_table$Team), ]
 
 #Load CSV with premier league table based on home matches  
