@@ -67,7 +67,7 @@ penalty_won <- penalty_won[order(penalty_won$Team), ]
 
 #LOAD csv with pl table 2023 24
 pl_table_2023_24 <- read.csv("data/pl_table_2023_24.csv")
-pl_table_2023_24 <- pl_table_2023_24[order(pl_table_2023_24$name), ]
+pl_table_2023_24 <- pl_table_2023_24[order(pl_table_2023_24$Team), ]
 
 #Load CSV with premier league table based on away matches  
 away_matches_based_table <- read.csv("data/pl_table_away_2023_24.csv")
