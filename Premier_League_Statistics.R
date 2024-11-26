@@ -41,11 +41,33 @@ conceded_expected_goals <- conceded_expected_goals[order(conceded_expected_goals
 expected_goals <- read.csv("data/expected_goals_team.csv")
 expected_goals <- expected_goals[order(expected_goals$Team), ]
 
+#LOAD csv with fk foul lost team
+fk_foul <- read.csv("data/fk_foul_lost_team.csv")
+fk_foul <- fk_foul[order(fk_foul$Team), ]
 
+#LOAD csv with goals conceded team match
+goals_conceded <- read.csv("data/goals_conceded_team_match.csv")
+goals_conceded <- goals_conceded[order(goals_conceded$Team), ]
 
+#LOAD csv with interception team
+interception_team <- read.csv("data/interception_team.csv")
+interception_team <- interception_team[order(interception_team$Team), ]
 
+#LOAD csv with ontarget scoring att team
+ontarget_scoring <- read.csv("data/ontarget_scoring_att_team.csv")
+ontarget_scoring <- ontarget_scoring[order(ontarget_scoring$Team), ]
 
+#LOAD csv with penalty conceded team
+penalty_conceded <- read.csv("data/penalty_conceded_team.csv")
+penalty_conceded <- penalty_conceded[order(penalty_conceded$Team), ]
 
+#LOAD csv with penalty won team
+penalty_won <- read.csv("data/penalty_won_team.csv")
+penalty_won <- penalty_won[order(penalty_won$Team), ]
+
+#LOAD csv with pl table 2023 24
+pl_table_2023_24 <- read.csv("data/pl_table_2023_24.csv")
+pl_table_2023_24 <- pl_table_2023_24[order(pl_table_2023_24$name), ]
 
 #Load CSV with premier league table based on away matches  
 away_matches_based_table <- read.csv("data/pl_table_away_2023_24.csv")
