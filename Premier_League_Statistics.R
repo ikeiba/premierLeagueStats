@@ -2,4 +2,4 @@
 #In this deliverable we will be analysing different Premier League Statistics from the 2023/2024 season
 
 accurate_cross <- read.csv("data/accurate_cross_team.csv")
-
+accurate_cross <- accurate_cross[order(accurate_cross$Team), ]
