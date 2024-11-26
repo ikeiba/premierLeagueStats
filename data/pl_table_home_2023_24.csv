@@ -1,4 +1,4 @@
-idx,name,played,wins,draws,losses,scoresStr,goalConDiff,pts
+idx,Team,played,home_wins,home_draws,home_losses,scoresStr,home_goalConDiff,home_pts
 1,Liverpool,19,15,3,1,49-17,32,48
 2,Manchester City,19,14,5,0,51-16,35,47
 3,Arsenal,19,15,2,2,48-16,32,47
