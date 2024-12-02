@@ -1,4 +1,4 @@
-idx,Team,played,total_wins,total_draws,total_losses,scoresStr,total_goalConDiff,total_pts
+Rank1,Team,played,total_wins,total_draws,total_losses,scoresStr,total_goalConDiff,total_pts
 1,Manchester City,38,28,7,3,96-34,62,91
 2,Arsenal,38,28,5,5,91-29,62,89
 3,Liverpool,38,24,10,4,86-41,45,82
