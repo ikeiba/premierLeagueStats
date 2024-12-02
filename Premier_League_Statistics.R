@@ -200,3 +200,17 @@ select_col <- function(df,...){
 }
 
 #select_col(combined_df, "total_wins", "total_draws", "total_losses")
+
+#Function to calculate the dirtiest team
+dirty_index <- function(x = 1, y = 2, z = 4) {
+  combined_df$dirty_index <- combined_df$Fouls.per.Match * x + combined_df$Yellow.Cards * y + combined_df$Red.Cards.y * z
+  return(combined_df)
+}
+
+#combined_df <- dirty_index()
+
+#Calculate expected goals difference, expected goals conceded difference and expected xg difference
+combined_df <- mutate(combined_df, xgGoalsDiff = combined_df$Goals - combined_df$xg)
+combined_df <- mutate(combined_df, xgConcededDiff = combined_df$Goals.Conceded - combined_df$xgConceded)
+combined_df <- mutate(combined_df, xgDiff = combined_df$xg - combined_df$xgConceded)
+combined_df
