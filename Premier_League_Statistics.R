@@ -2,8 +2,8 @@
 #In this deliverable we will be analysing different Premier League Statistics from the 2023/2024 season
 
 #install.packages("dplyr")
-#library(dplyr)
-#library(purrr)
+library(dplyr)
+library(purrr)
 
 #2. LOADING THE DATASET INTO THE ENVIRONMENT
 
@@ -130,8 +130,7 @@ dataframes <- list(
   won_tackle_team
 )
 
-#Delete the columns that are repeated in all the data frames
-
+#Delete the columns that are repeated in all the data frames (or the ones that we don't consider important)
 cleaning <- function(x){
   if ("Rank" %in% colnames(x)){
     x$Rank <- NULL
@@ -148,16 +147,29 @@ cleaning <- function(x){
   return(x)
 }
 
+#Apply the function to all the dataframes
 dataframes <- lapply(dataframes, cleaning)
 dataframes[[1]]
 
-
-
-#join them by the team column
+#Join them by the team column (using reduce to concatenate the results of each "iteration")
 combined_df <- reduce(dataframes, full_join, by = "Team")
 combined_df
 
+#5. DATA TRANSFORMATION
 
+#Function to return the provided metric ordered
+order_column <- function(df, name_of_column, decreasing = F, full_dataframe = F){
+  if (!name_of_column %in% colnames(df)){
+    return ("The column is not present in the provided dataframe")
+  }
+  df_sorted <- df[order(df[[name_of_column]], decreasing = decreasing), ]
+  if (full_dataframe){
+    return(df_sorted)
+  }
+  return(df_sorted$Team)  # Return the sorted data frame  # Return the sorted column
+}
 
+#order_column(combined_df, "total_goalConDiff")
 
+#Function to return the team and the provided statistic(s)
 
