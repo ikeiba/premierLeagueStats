@@ -176,6 +176,5 @@ order_column <- function(df, name_of_column, decreasing = F, full_dataframe = F)
 combined_df <- mutate(combined_df, big_chances_missed_percentaje = round(combined_df$Big.Chances.Missed / combined_df$Big.Chances, 2))
 
 #Add a column with the percentaje of clean sheets 
-mutate(combined_df, clean_sheets_percentaje = round(combined_df$Clean.Sheets / 38, 2))
-
+combined_df <- mutate(combined_df, clean_sheets_percentaje = round(combined_df$Clean.Sheets / 38, 2))
 
