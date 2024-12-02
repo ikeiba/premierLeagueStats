@@ -178,3 +178,25 @@ combined_df <- mutate(combined_df, big_chances_missed_percentaje = round(combine
 #Add a column with the percentaje of clean sheets 
 combined_df <- mutate(combined_df, clean_sheets_percentaje = round(combined_df$Clean.Sheets / 38, 2))
 
+#Get a data frame with the teams that has a value higher than the mean in an expecific parameter
+above_media <- function(df,p){
+  if(p %in% colnames(df)){
+    mean_pd <- summarize(df,mean_p = mean(df$p))
+    df <- filter(df,df$p > mean_pd$mean_p)
+    return(df)
+  }
+  return (NULL)
+}
+
+#above_media(combined_df, "total_wins")
+
+#Get a data frame with just the columns wanted
+select_col <- function(df,...){
+  args <- as.character(c(...))
+  args_f <- args[args %in% colnames(df)]
+  args_f <- c("Team", args_f)
+  sub_df <- df %>% select(all_of(args_f))
+  return(sub_df)
+}
+
+#select_col(combined_df, "total_wins", "total_draws", "total_losses")
