@@ -95,7 +95,8 @@ touches_in_opp_box_team <- read.csv("data/touches_in_opp_box_team.csv")
 won_tackle_team <- read.csv("data/won_tackle_team.csv")
 
 #3. DATA CLEANING (No need to change anything. Better explanation in the documentation)
-is.na(won_tackle_team)
+is.na(touches_in_opp_box_team)
+
 #4. DATA INTEGRATION
 #create a list with all the data frames
 dataframes <- list(
@@ -172,7 +173,7 @@ order_column <- function(df, name_of_column, decreasing = F, full_dataframe = F)
 #order_column(combined_df, "total_goalConDiff")
 
 #Add a column with the percentaje of missed big chances
-mutate(combined_df, big_chances_missed_percentaje = round(combined_df$Big.Chances.Missed / combined_df$Big.Chances, 2))
+combined_df <- mutate(combined_df, big_chances_missed_percentaje = round(combined_df$Big.Chances.Missed / combined_df$Big.Chances, 2))
 
 #Add a column with the percentaje of clean sheets 
 mutate(combined_df, clean_sheets_percentaje = round(combined_df$Clean.Sheets / 38, 2))
