@@ -1,4 +1,4 @@
-idx,Team,played,away_wins,away_draws,away_losses,scoresStr,away_goalConDiff,away_pts
+Rank,Team,played,away_wins,away_draws,away_losses,scoresStr,away_goalConDiff,away_pts
 1,Manchester City,19,14,2,3,45-18,27,44
 2,Arsenal,19,13,3,3,43-13,30,42
 3,Liverpool,19,9,7,3,37-24,13,34

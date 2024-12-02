@@ -3,6 +3,7 @@
 
 #install.packages("dplyr")
 #library(dplyr)
+#library(purrr)
 
 #2. LOADING THE DATASET INTO THE ENVIRONMENT
 
@@ -84,7 +85,7 @@ team_ratings <- read.csv("data/team_ratings.csv")
 #Load CSV with total red card team
 total_red_card_team <- read.csv("data/total_red_card_team.csv")
 
-#Load CSV with total yel card team
+#Load CSV with total yeñpwl card team
 total_yel_card_team <- read.csv("data/total_yel_card_team.csv")
 
 #Load CSV with touches in opp box team
@@ -96,8 +97,65 @@ won_tackle_team <- read.csv("data/won_tackle_team.csv")
 #3. DATA CLEANING (No need to change anything. Better explanation in the documentation)
 
 #4. DATA INTEGRATION
+#create a list with all the data frames
+dataframes <- list(
+  pl_table_2023_24,
+  away_matches_based_table,
+  home_matches_based_table,
+  expected_goals_based_table,
+  accurate_cross,
+  accurate_long_balls,
+  accurate_passes,
+  big_chances_missed,
+  big_chances,
+  clean_sheet,
+  corner_taken,
+  effective_clearances,
+  conceded_expected_goals,
+  expected_goals,
+  fk_foul,
+  goals_conceded,
+  interception_team,
+  ontarget_scoring,
+  penalty_conceded,
+  penalty_won,
+  possession_percentage_team,
+  possession_won_att_3rd_team,
+  saves_team,
+  team_goals_per_match,
+  team_ratings,
+  total_red_card_team,
+  total_yel_card_team,
+  touches_in_opp_box_team,
+  won_tackle_team
+)
+
+#Delete the columns that are repeated in all the data frames
+
+cleaning <- function(x){
+  if ("Rank" %in% colnames(x)){
+    x$Rank <- NULL
+  }
+  if ("Matches" %in% colnames(x)){
+    x$Matches <- NULL  
+    }
+  if ("Country" %in% colnames(x)){
+    x$Country <- NULL
+  }
+  if ("played" %in% colnames(x)){
+    x$played <- NULL
+  }
+  return(x)
+}
+
+dataframes <- lapply(dataframes, cleaning)
+dataframes[[1]]
 
 
+
+#join them by the team column
+combined_df <- reduce(dataframes, full_join, by = "Team")
+combined_df
 
 
 
