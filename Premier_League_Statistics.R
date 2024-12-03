@@ -4,6 +4,9 @@
 #install.packages("dplyr")
 library(dplyr)
 library(purrr)
+library(shiny)
+library(ggplot2)
+library(tidyr)
 
 #2. LOADING THE DATASET INTO THE ENVIRONMENT
 #As there are several csv from which we are going to extract the data, we will have to do it in different steps
@@ -47,7 +50,7 @@ goals_conceded <- read.csv("data/goals_conceded_team_match.csv")
 #LOAD csv with interception team
 interception_team <- read.csv("data/interception_team.csv")
 
-#LOAD csv with ontarget scoring att team
+#LOAD csv with on target scoring at team
 ontarget_scoring <- read.csv("data/ontarget_scoring_att_team.csv")
 
 #LOAD csv with penalty conceded team
@@ -95,12 +98,7 @@ touches_in_opp_box_team <- read.csv("data/touches_in_opp_box_team.csv")
 #Load CSV with won tackle team
 won_tackle_team <- read.csv("data/won_tackle_team.csv")
 
-#3. DATA CLEANING (No need to change anything. Better explanation in the documentation)
-#Still, we will check that there are no na values our outliers
-is.na(touches_in_opp_box_team)
-
-#4. DATA INTEGRATION
-#create a list with all the data frames
+#We have created a list with all the datasets as it will be useful to analyse and merge them all together in the future
 dataframes <- list(
   pl_table_2023_24,
   away_matches_based_table,
@@ -132,6 +130,62 @@ dataframes <- list(
   touches_in_opp_box_team,
   won_tackle_team
 )
+
+#We assing names to the datasets as it will make it clearer when analysing them
+names(dataframes) <- c("pl_table_2023_24", "away_matches_based_table", "home_matches_based_table", 
+                       "expected_goals_based_table", "accurate_cross", "accurate_long_balls", 
+                       "accurate_passes", "big_chances_missed", "big_chances", "clean_sheet", 
+                       "corner_taken", "effective_clearances", "conceded_expected_goals", 
+                       "expected_goals", "fk_foul", "goals_conceded", "interception_team", 
+                       "ontarget_scoring", "penalty_conceded", "penalty_won", 
+                       "possession_percentage_team", "possession_won_att_3rd_team", "saves_team", 
+                       "team_goals_per_match", "team_ratings", "total_red_card_team", 
+                       "total_yel_card_team", "touches_in_opp_box_team", "won_tackle_team")
+
+
+#3. DATA CLEANING (No need to change anything. Better explanation in the documentation)
+#Still, we will check that there are no 'na' values our outliers
+
+#We check for each of the dataframes that there are no na values in their column (we print the name of the dataframe, the name 
+#of the column and the amount of na values found in that column)
+for (name in names(dataframes)) {
+  cat("\n", name, ":\n")
+  print(colSums(is.na(dataframes[[name]])))
+}
+
+# Loop through each dataset and generate boxplots to check for outliers
+for (name in names(dataframes)) {
+  cat("\n", name, " Boxplots:\n")
+  dataset <- dataframes[[name]]
+  
+  # Select only numerical columns (all of them in our case)
+  numerical_vars <- dataset %>% select(where(is.numeric))
+  
+  if (ncol(numerical_vars) > 0) {
+    # Loop through each numerical column and create individual boxplots (useful to check for outliers)
+    for (col_name in colnames(numerical_vars)) {
+      ggplot(dataset, aes(y = .data[[col_name]])) +
+        geom_boxplot() +
+        labs(
+          title = paste("Boxplot of", col_name, "in", name),
+          x = "",  # No x-axis for single-variable boxplot
+          y = col_name
+        ) +
+        theme_minimal() -> boxplot
+      
+      print(boxplot)  # Display the plot
+    }
+  } else {
+    cat("No numerical columns to create boxplots.\n")
+  }
+}
+#After rendering and checking all the boxplots, we have seen that some point seem to be outliers. However, after 
+#checking again the official values in different webpages, we have seen that the values are correct and is just
+#that there are quite far away from the other teams.
+
+
+#4. DATA INTEGRATION
+#create a list with all the data frames
 
 #Delete the columns that are repeated in all the data frames (or the ones that we don't consider important)
 cleaning <- function(x){
@@ -275,3 +329,4 @@ server <- function(input, output) {
 }
 
 shinyApp(ui = ui, server = server)
+
