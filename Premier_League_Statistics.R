@@ -389,3 +389,63 @@ server <- function(input, output) {
 
 shinyApp(ui = ui, server = server)
 
+# UI
+ui <- fluidPage(
+  titlePanel("k-means Clustering with Images"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("xcol", "X Variable", NULL),
+      selectInput("ycol", "Y Variable", NULL),
+      numericInput("clusters", "Number of Clusters:", 
+                   min = 2, max = 5, value = 3)
+    ),
+    mainPanel(
+      plotOutput("clusterPlot")
+    )
+  )
+)
+
+# Server
+server <- function(input, output, session) {
+  # Load pre-stored images
+  images <- list.files("ResizedImages", pattern = "\\.(png|jpg|jpeg)$", full.names = TRUE)
+  
+  # Update selectInput choices dynamically based on the dataset
+  observe({
+    updateSelectInput(session, "xcol", choices = colnames(combined_df))
+    updateSelectInput(session, "ycol", choices = colnames(combined_df))
+  })
+  
+  # Reactive function to select data
+  selectedData <- reactive({
+    req(input$xcol, input$ycol)  # Ensure inputs are selected
+    combined_df[, c(input$xcol, input$ycol)]
+  })
+  
+  # Reactive function for k-means clustering
+  clusters <- reactive({
+    kmeans(selectedData(), input$clusters)
+  })
+  
+  # Generate the plot
+  output$clusterPlot <- renderPlot({
+    clusterData <- selectedData()
+    clusterData$Cluster <- as.factor(clusters()$cluster)
+    
+    # Assign pre-stored images cyclically to the clusters
+    clusterData$image <- images[(1:nrow(clusterData)) %% length(images) + 1]
+    
+    ggplot(clusterData, aes_string(x = input$xcol, y = input$ycol)) +
+      # Add colored circles for borders
+      geom_point(aes(color = Cluster), size = 8, shape = 21, stroke = 1.5, fill = "white") +
+      # Add images
+      geom_image(aes(image = image), size = 0.05) +
+      scale_color_manual(values = rainbow(length(unique(clusterData$Cluster)))) +
+      labs(title = "k-means Clustering with Pre-stored Images", 
+           x = input$xcol, y = input$ycol) +
+      theme_minimal()
+  })
+}
+
+# Run the app
+shinyApp(ui = ui, server = server)
