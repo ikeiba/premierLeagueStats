@@ -330,3 +330,62 @@ server <- function(input, output) {
 
 shinyApp(ui = ui, server = server)
 
+nom_grupos <- list(
+  "Match Results" = c("total_wins", "total_draws", "total_losses", "away_wins", "away_draws", "away_losses", "home_wins", "home_draws", "home_losses"),
+  "Points" = c("total_pts", "away_pts", "home_pts", "xPoints"),
+  "Goals" = c("total_goalConDiff", "away_goalConDiff", "home_goalConDiff", "xg", "xgConceded", "Goals", "Goals.Conceded"),
+  "Defensive actions" = c("Clearances.per.Match", "Fouls.per.Match", "Interceptions.per.Match")
+)
+
+ui <- fluidPage(
+  titlePanel("Statistics of each Premier League Team"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "teams",
+        label = "Select the team",
+        choices = unique(combined_df$Team),
+        selected = "Liverpool"
+      ),
+      selectInput(
+        inputId = "param",
+        label = "Select the group of stats you want to view",
+        choices = names(nom_grupos),
+        selected = "Match Results"
+      )
+    ),
+    mainPanel(
+      plotOutput("stats_plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  filtered_data <- reactive({
+    req(input$teams, input$param)
+    
+    grupo <- nom_grupos[[input$param]]
+    combined_df %>%
+      filter(Team == input$teams) %>%
+      select(all_of(grupo)) %>%
+      pivot_longer(cols = everything(), names_to = "Stat", values_to = "Value")
+  })
+  
+  output$stats_plot <- renderPlot({
+    data <- filtered_data()
+    
+    ggplot(data, aes(x = Stat, y = Value, fill = Stat)) +
+      geom_col() +
+      labs(
+        title = paste("Statistics for", input$teams),
+        x = "Statistic",
+        y = "Value"
+      ) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
