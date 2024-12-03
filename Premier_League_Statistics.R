@@ -6,6 +6,7 @@ library(dplyr)
 library(purrr)
 
 #2. LOADING THE DATASET INTO THE ENVIRONMENT
+#As there are several csv from which we are going to extract the data, we will have to do it in different steps
 
 #Load CSV with accurate crosses
 accurate_cross <- read.csv("data/accurate_cross_team.csv")
@@ -95,6 +96,7 @@ touches_in_opp_box_team <- read.csv("data/touches_in_opp_box_team.csv")
 won_tackle_team <- read.csv("data/won_tackle_team.csv")
 
 #3. DATA CLEANING (No need to change anything. Better explanation in the documentation)
+#Still, we will check that there are no na values our outliers
 is.na(touches_in_opp_box_team)
 
 #4. DATA INTEGRATION
