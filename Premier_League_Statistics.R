@@ -214,3 +214,62 @@ combined_df <- mutate(combined_df, xgGoalsDiff = combined_df$Goals - combined_df
 combined_df <- mutate(combined_df, xgConcededDiff = combined_df$Goals.Conceded - combined_df$xgConceded)
 combined_df <- mutate(combined_df, xgDiff = combined_df$xg - combined_df$xgConceded)
 combined_df
+
+ui <- fluidPage(
+  titlePanel("Similitud entre parámetros de equipos de la Premier League"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "param1",
+        label = "Select the first parameter",
+        choices = setdiff(colnames(combined_df), "Team"),  
+        selected = "xg"
+      ),
+      selectInput(
+        inputId = "param2",
+        label = "Select the second parameter",
+        choices = setdiff(colnames(combined_df), "Team"),  
+        selected = "total_wins"
+      )
+    ),
+    
+    mainPanel(
+      plotOutput("correlation_plot"),
+      textOutput("correlation_text")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    combined_df %>% select(Team, all_of(input$param1), all_of(input$param2))
+  })
+  
+  output$correlation_text <- renderText({
+    data <- filtered_data()
+    correlation <- cor(data[[input$param1]], data[[input$param2]])
+    paste("The correlation between", input$param1, "and", input$param2, "is:", round(correlation, 2))
+  })
+  
+  output$correlation_plot <- renderPlot({
+    data <- filtered_data()
+    
+    x <- data[[input$param1]]
+    y <- data[[input$param2]]
+    
+    plot(
+      x, y,
+      main = paste("Relation between", input$param1, "and", input$param2),
+      xlab = input$param1,
+      ylab = input$param2,
+      col = "blue",
+      pch = 19
+    )
+    
+    abline(lm(y ~ x), col = "red", lwd = 2)
+  })
+}
+
+shinyApp(ui = ui, server = server)
