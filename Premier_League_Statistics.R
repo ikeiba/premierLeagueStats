@@ -402,6 +402,62 @@ server <- function(input, output) {
 
 shinyApp(ui = ui, server = server)
 
+ui <- fluidPage(
+  titlePanel("Percentage of Home and Away Wins"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "teams",
+        label = "Select the team",
+        choices = unique(combined_df$Team),
+        selected = "Liverpool"
+      )
+    ),
+    mainPanel(
+      plotOutput("stats_plot")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    combined_df %>%
+      filter(Team == input$teams) %>%
+      select(total_wins, away_wins, home_wins)
+  })
+  
+  porcentage <- reactive({
+    data <- filtered_data()
+    total <- data$total_wins
+    tibble(
+      Stat = c("Away Wins (%)", "Home Wins (%)"),
+      Value = c(
+        data$away_wins / total * 100, 
+        data$home_wins / total * 100
+      )
+    )
+  })
+  
+  output$stats_plot <- renderPlot({
+    data <- porcentage()
+    
+    ggplot(data, aes(x = Stat, y = Value, fill = Stat)) +
+      geom_col() +
+      labs(
+        title = paste("Percentage of Home and Away Wins for", input$teams),
+        x = "Statistic",
+        y = "Percentage (%)"
+      ) +
+      scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 10)) +
+      theme_minimal() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  })
+}
+
+shinyApp(ui = ui, server = server)
+
 # UI
 ui <- fluidPage(
   titlePanel("k-means Clustering with Images"),
