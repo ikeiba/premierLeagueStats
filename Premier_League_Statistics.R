@@ -272,7 +272,7 @@ combined_df <- mutate(combined_df, xgDiff = combined_df$xg - combined_df$xgConce
 combined_df
 
 ui <- fluidPage(
-  titlePanel("Similitud entre parámetros de equipos de la Premier League"),
+  titlePanel("Similitud entre parámetros de equipos de la Premier League con Imágenes"),
   
   sidebarLayout(
     sidebarPanel(
@@ -297,10 +297,27 @@ ui <- fluidPage(
   )
 )
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+  
+  team_mapping <- data.frame(
+    Team = combined_df$Team,
+    ImageName = c("ManchesterCity","Arsenal", "Liverpool", "AstonVilla", "Tottenham","Chelsea","Newcastle","ManchesterUnited","WestHam","CrystalPalace","Brighton","Bournemouth","Fulham", "Wolves","Everton","Brentford","NottinghamForest","Luton","Burnley","SheffieldUnited" ),                   # Nombres de las imágenes
+    stringsAsFactors = FALSE
+  )
+  
+  team_images <- list.files("ResizedImages", pattern = "\\.(png|jpg|jpeg)$", full.names = TRUE)
+  image_mapping <- data.frame(
+    ImageName = tools::file_path_sans_ext(basename(team_images)),
+    Image = team_images,
+    stringsAsFactors = FALSE
+  )
+  
+  full_mapping <- left_join(team_mapping, image_mapping, by = "ImageName")
   
   filtered_data <- reactive({
-    combined_df %>% select(Team, all_of(input$param1), all_of(input$param2))
+    combined_df %>% 
+      left_join(full_mapping, by = "Team") %>% 
+      select(Team, Image, all_of(input$param1), all_of(input$param2))
   })
   
   output$correlation_text <- renderText({
@@ -312,19 +329,15 @@ server <- function(input, output) {
   output$correlation_plot <- renderPlot({
     data <- filtered_data()
     
-    x <- data[[input$param1]]
-    y <- data[[input$param2]]
-    
-    plot(
-      x, y,
-      main = paste("Relation between", input$param1, "and", input$param2),
-      xlab = input$param1,
-      ylab = input$param2,
-      col = "blue",
-      pch = 19
-    )
-    
-    abline(lm(y ~ x), col = "red", lwd = 2)
+    ggplot(data, aes_string(x = input$param1, y = input$param2)) +
+      geom_image(aes(image = Image), size = 0.05) +
+      geom_smooth(method = "lm", color = "red", se = FALSE, linetype = "dashed") +
+      labs(
+        title = paste("Relation between", input$param1, "and", input$param2),
+        x = input$param1,
+        y = input$param2
+      ) +
+      theme_minimal()
   })
 }
 
@@ -449,3 +462,4 @@ server <- function(input, output, session) {
 
 # Run the app
 shinyApp(ui = ui, server = server)
+
