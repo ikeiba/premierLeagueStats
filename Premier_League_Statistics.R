@@ -516,7 +516,7 @@ server <- function(input, output, session) {
         panel.grid = element_blank()
       ) +
       scale_fill_manual(values = rainbow(nrow(data))) +
-      geom_image(aes(image = Image), size = 0.03, position = position_stack(vjust = 0.4))
+      geom_image(aes(image = Image), size = 0.05, position = position_stack(vjust = 0.5))
   }, width = 700, height = 700)
 }
 
