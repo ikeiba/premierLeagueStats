@@ -7,6 +7,7 @@ library(purrr)
 library(shiny)
 library(ggplot2)
 library(tidyr)
+library(ggimage)
 
 #2. LOADING THE DATASET INTO THE ENVIRONMENT
 #As there are several csv from which we are going to extract the data, we will have to do it in different steps
@@ -271,37 +272,87 @@ combined_df <- mutate(combined_df, xgConcededDiff = combined_df$Goals.Conceded -
 combined_df <- mutate(combined_df, xgDiff = combined_df$xg - combined_df$xgConceded)
 combined_df
 
+nom_grupos <- list(
+  "Match Results" = c("total_wins", "total_draws", "total_losses", "away_wins", "away_draws", "away_losses", "home_wins", "home_draws", "home_losses"),
+  "Points" = c("total_pts", "away_pts", "home_pts", "xPoints"),
+  "Goals" = c("total_goalConDiff", "away_goalConDiff", "home_goalConDiff", "xg", "xgConceded", "Goals", "Goals.Conceded"),
+  "Defensive actions" = c("Clearances.per.Match", "Fouls.per.Match", "Interceptions.per.Match")
+)
+
 ui <- fluidPage(
-  titlePanel("Similitud entre parámetros de equipos de la Premier League con Imágenes"),
+  titlePanel("Análisis de la Premier League"),
   
   sidebarLayout(
     sidebarPanel(
-      selectInput(
-        inputId = "param1",
-        label = "Select the first parameter",
-        choices = setdiff(colnames(combined_df), "Team"),  
-        selected = "xg"
+      conditionalPanel(
+        condition = "input.tabs == 'Similitud'",
+        selectInput(
+          inputId = "param1",
+          label = "Select the first parameter",
+          choices = setdiff(colnames(combined_df), "Team"),  
+          selected = "xg"
+        ),
+        selectInput(
+          inputId = "param2",
+          label = "Select the second parameter",
+          choices = setdiff(colnames(combined_df), "Team"),  
+          selected = "total_wins"
+        )
       ),
-      selectInput(
-        inputId = "param2",
-        label = "Select the second parameter",
-        choices = setdiff(colnames(combined_df), "Team"),  
-        selected = "total_wins"
+      conditionalPanel(
+        condition = "input.tabs == 'Estadísticas por equipo'",
+        selectInput(
+          inputId = "teams",
+          label = "Select the team",
+          choices = unique(combined_df$Team),
+          selected = "Liverpool"
+        ),
+        selectInput(
+          inputId = "param",
+          label = "Select the group of stats you want to view",
+          choices = names(nom_grupos),
+          selected = "Match Results"
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs == 'Porcentaje de victorias'",
+        selectInput(
+          inputId = "teams",
+          label = "Select the team",
+          choices = unique(combined_df$Team),
+          selected = "Liverpool"
+        )
+      ),
+      conditionalPanel(
+        condition = "input.tabs == 'Clustering'",
+        selectInput("xcol", "X Variable", NULL),
+        selectInput("ycol", "Y Variable", NULL),
+        numericInput("clusters", "Number of Clusters:", 
+                     min = 2, max = 5, value = 3)
       )
     ),
     
     mainPanel(
-      plotOutput("correlation_plot"),
-      textOutput("correlation_text")
+      tabsetPanel(
+        id = "tabs",
+        tabPanel("Similitud", 
+                 plotOutput("correlation_plot"),
+                 textOutput("correlation_text")),
+        tabPanel("Estadísticas por equipo", 
+                 plotOutput("stats_team_plot")),
+        tabPanel("Porcentaje de victorias", 
+                 plotOutput("stats_plot")),
+        tabPanel("Clustering", 
+                 plotOutput("clusterPlot"))
+      )
     )
   )
 )
 
 server <- function(input, output, session) {
-  
   team_mapping <- data.frame(
     Team = combined_df$Team,
-    ImageName = c("ManchesterCity","Arsenal", "Liverpool", "AstonVilla", "Tottenham","Chelsea","Newcastle","ManchesterUnited","WestHam","CrystalPalace","Brighton","Bournemouth","Fulham", "Wolves","Everton","Brentford","NottinghamForest","Luton","Burnley","SheffieldUnited" ),                   # Nombres de las imágenes
+    ImageName = c("ManchesterCity","Arsenal", "Liverpool", "AstonVilla", "Tottenham","Chelsea","Newcastle","ManchesterUnited","WestHam","CrystalPalace","Brighton","Bournemouth","Fulham", "Wolves","Everton","Brentford","NottinghamForest","Luton","Burnley","SheffieldUnited"),
     stringsAsFactors = FALSE
   )
   
@@ -314,20 +365,20 @@ server <- function(input, output, session) {
   
   full_mapping <- left_join(team_mapping, image_mapping, by = "ImageName")
   
-  filtered_data <- reactive({
+  filtered_data_similitud <- reactive({
     combined_df %>% 
       left_join(full_mapping, by = "Team") %>% 
       select(Team, Image, all_of(input$param1), all_of(input$param2))
   })
   
   output$correlation_text <- renderText({
-    data <- filtered_data()
+    data <- filtered_data_similitud()
     correlation <- cor(data[[input$param1]], data[[input$param2]])
     paste("The correlation between", input$param1, "and", input$param2, "is:", round(correlation, 2))
   })
   
   output$correlation_plot <- renderPlot({
-    data <- filtered_data()
+    data <- filtered_data_similitud()
     
     ggplot(data, aes_string(x = input$param1, y = input$param2)) +
       geom_image(aes(image = Image), size = 0.05) +
@@ -339,45 +390,9 @@ server <- function(input, output, session) {
       ) +
       theme_minimal()
   })
-}
-
-shinyApp(ui = ui, server = server)
-
-nom_grupos <- list(
-  "Match Results" = c("total_wins", "total_draws", "total_losses", "away_wins", "away_draws", "away_losses", "home_wins", "home_draws", "home_losses"),
-  "Points" = c("total_pts", "away_pts", "home_pts", "xPoints"),
-  "Goals" = c("total_goalConDiff", "away_goalConDiff", "home_goalConDiff", "xg", "xgConceded", "Goals", "Goals.Conceded"),
-  "Defensive actions" = c("Clearances.per.Match", "Fouls.per.Match", "Interceptions.per.Match")
-)
-
-ui <- fluidPage(
-  titlePanel("Statistics of each Premier League Team"),
   
-  sidebarLayout(
-    sidebarPanel(
-      selectInput(
-        inputId = "teams",
-        label = "Select the team",
-        choices = unique(combined_df$Team),
-        selected = "Liverpool"
-      ),
-      selectInput(
-        inputId = "param",
-        label = "Select the group of stats you want to view",
-        choices = names(nom_grupos),
-        selected = "Match Results"
-      )
-    ),
-    mainPanel(
-      plotOutput("stats_plot")
-    )
-  )
-)
-
-server <- function(input, output) {
-  filtered_data <- reactive({
+  filtered_data_team_stats <- reactive({
     req(input$teams, input$param)
-    
     grupo <- nom_grupos[[input$param]]
     combined_df %>%
       filter(Team == input$teams) %>%
@@ -385,8 +400,8 @@ server <- function(input, output) {
       pivot_longer(cols = everything(), names_to = "Stat", values_to = "Value")
   })
   
-  output$stats_plot <- renderPlot({
-    data <- filtered_data()
+  output$stats_team_plot <- renderPlot({
+    data <- filtered_data_team_stats()
     
     ggplot(data, aes(x = Stat, y = Value, fill = Stat)) +
       geom_col() +
@@ -398,38 +413,15 @@ server <- function(input, output) {
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
-}
-
-shinyApp(ui = ui, server = server)
-
-ui <- fluidPage(
-  titlePanel("Percentage of Home and Away Wins"),
   
-  sidebarLayout(
-    sidebarPanel(
-      selectInput(
-        inputId = "teams",
-        label = "Select the team",
-        choices = unique(combined_df$Team),
-        selected = "Liverpool"
-      )
-    ),
-    mainPanel(
-      plotOutput("stats_plot")
-    )
-  )
-)
-
-server <- function(input, output) {
-  
-  filtered_data <- reactive({
+  filtered_data_wins <- reactive({
     combined_df %>%
       filter(Team == input$teams) %>%
       select(total_wins, away_wins, home_wins)
   })
   
   porcentage <- reactive({
-    data <- filtered_data()
+    data <- filtered_data_wins()
     total <- data$total_wins
     tibble(
       Stat = c("Away Wins (%)", "Home Wins (%)"),
@@ -454,60 +446,29 @@ server <- function(input, output) {
       theme_minimal() +
       theme(axis.text.x = element_text(angle = 45, hjust = 1))
   })
-}
-
-shinyApp(ui = ui, server = server)
-
-# UI
-ui <- fluidPage(
-  titlePanel("k-means Clustering with Images"),
-  sidebarLayout(
-    sidebarPanel(
-      selectInput("xcol", "X Variable", NULL),
-      selectInput("ycol", "Y Variable", NULL),
-      numericInput("clusters", "Number of Clusters:", 
-                   min = 2, max = 5, value = 3)
-    ),
-    mainPanel(
-      plotOutput("clusterPlot")
-    )
-  )
-)
-
-# Server
-server <- function(input, output, session) {
-  # Load pre-stored images
-  images <- list.files("ResizedImages", pattern = "\\.(png|jpg|jpeg)$", full.names = TRUE)
   
-  # Update selectInput choices dynamically based on the dataset
   observe({
     updateSelectInput(session, "xcol", choices = colnames(combined_df))
     updateSelectInput(session, "ycol", choices = colnames(combined_df))
   })
   
-  # Reactive function to select data
   selectedData <- reactive({
-    req(input$xcol, input$ycol)  # Ensure inputs are selected
+    req(input$xcol, input$ycol)
     combined_df[, c(input$xcol, input$ycol)]
   })
   
-  # Reactive function for k-means clustering
   clusters <- reactive({
     kmeans(selectedData(), input$clusters)
   })
   
-  # Generate the plot
   output$clusterPlot <- renderPlot({
     clusterData <- selectedData()
     clusterData$Cluster <- as.factor(clusters()$cluster)
     
-    # Assign pre-stored images cyclically to the clusters
-    clusterData$image <- images[(1:nrow(clusterData)) %% length(images) + 1]
+    clusterData$image <- list.files("ResizedImages", pattern = "\\.(png|jpg|jpeg)$", full.names = TRUE)[(1:nrow(clusterData)) %% length(list.files("ResizedImages", pattern = "\\.(png|jpg|jpeg)$")) + 1]
     
     ggplot(clusterData, aes_string(x = input$xcol, y = input$ycol)) +
-      # Add colored circles for borders
       geom_point(aes(color = Cluster), size = 8, shape = 21, stroke = 1.5, fill = "white") +
-      # Add images
       geom_image(aes(image = image), size = 0.05) +
       scale_color_manual(values = rainbow(length(unique(clusterData$Cluster)))) +
       labs(title = "k-means Clustering with Pre-stored Images", 
@@ -516,6 +477,5 @@ server <- function(input, output, session) {
   })
 }
 
-# Run the app
 shinyApp(ui = ui, server = server)
 
