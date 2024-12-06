@@ -282,12 +282,12 @@ nom_grupos <- list(
 )
 
 ui <- fluidPage(
-  titlePanel("Análisis de la Premier League"),
+  titlePanel("Premier League analysis"),
   
   sidebarLayout(
     sidebarPanel(
       conditionalPanel(
-        condition = "input.tabs == 'Similitud'",
+        condition = "input.tabs == 'Similarity'",
         selectInput(
           inputId = "param1",
           label = "Select the first parameter",
@@ -302,7 +302,7 @@ ui <- fluidPage(
         )
       ),
       conditionalPanel(
-        condition = "input.tabs == 'Estadísticas por equipo'",
+        condition = "input.tabs == 'Statistics by team'",
         selectInput(
           inputId = "teams",
           label = "Select the team",
@@ -317,7 +317,7 @@ ui <- fluidPage(
         )
       ),
       conditionalPanel(
-        condition = "input.tabs == 'Porcentaje de victorias'",
+        condition = "input.tabs == 'Winning percentage'",
         selectInput(
           inputId = "teams",
           label = "Select the team",
@@ -333,23 +333,36 @@ ui <- fluidPage(
                      min = 2, max = 5, value = 3)
       )
     ),
-    
-    mainPanel(
-      tabsetPanel(
-        id = "tabs",
-        tabPanel("Similitud", 
-                 plotOutput("correlation_plot"),
-                 textOutput("correlation_text")),
-        tabPanel("Estadísticas por equipo", 
-                 plotOutput("stats_team_plot")),
-        tabPanel("Porcentaje de victorias", 
-                 plotOutput("stats_plot")),
-        tabPanel("Clustering", 
-                 plotOutput("clusterPlot"))
+    conditionalPanel(
+      condition = "input.tabs == 'Percentage by Parameter'",
+      selectInput(
+        inputId = "circular_param",
+        label = "Select a parameter to view percentages",
+        choices = setdiff(colnames(combined_df), "Team"),
+        selected = "xg"
+      )
+    )
+  ),
+  
+  mainPanel(
+    tabsetPanel(
+      id = "tabs",
+      tabPanel("Similarity", 
+               plotOutput("correlation_plot"),
+               textOutput("correlation_text")),
+      tabPanel("Statistics by team", 
+               plotOutput("stats_team_plot")),
+      tabPanel("Winning percentage", 
+               plotOutput("stats_plot")),
+      tabPanel("Clustering", 
+               plotOutput("clusterPlot")),
+      tabPanel("Percentage by Parameter", 
+               plotOutput("circular_plot")
       )
     )
   )
 )
+
 
 server <- function(input, output, session) {
   team_mapping <- data.frame(
@@ -477,6 +490,34 @@ server <- function(input, output, session) {
            x = input$xcol, y = input$ycol) +
       theme_minimal()
   })
+  
+  circular_data <- reactive({
+    param <- input$circular_param
+    total_value <- sum(combined_df[[param]])
+    combined_df %>% mutate(Percentage = (.[[param]] / total_value) * 100) %>% 
+      left_join(full_mapping, by = "Team") %>%
+      select(Team,Image,Percentage)
+  })
+  
+  output$circular_plot <- renderPlot({
+    data <- circular_data()
+    ggplot(data, aes(x = "", y = Percentage, fill = paste(Team,round(Percentage, 1),"%"))) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      labs(
+        title = paste("Percentage of", input$circular_param, "by Team"),
+        fill = "Equipo y Porcentaje",
+        x = NULL,
+        y = NULL
+      ) +
+      theme(
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank()
+      ) +
+      scale_fill_manual(values = rainbow(nrow(data))) +
+      geom_image(aes(image = Image), size = 0.05, position = position_stack(vjust = 0.5))
+  }, width = 700, height = 700)
 }
 
 shinyApp(ui = ui, server = server)
