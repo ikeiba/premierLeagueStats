@@ -165,16 +165,18 @@ for (name in names(dataframes)) {
   if (ncol(numerical_vars) > 0) {
     # Loop through each numerical column and create individual boxplots (useful to check for outliers)
     for (col_name in colnames(numerical_vars)) {
-      ggplot(dataset, aes(y = .data[[col_name]])) +
-        geom_boxplot() +
-        labs(
-          title = paste("Boxplot of", col_name, "in", name),
-          x = "",  # No x-axis for single-variable boxplot
-          y = col_name
-        ) +
-        theme_minimal() -> boxplot
-      
-      print(boxplot)  # Display the plot
+      if (col_name != "Matches"){
+        ggplot(dataset, aes(y = .data[[col_name]])) +
+          geom_boxplot() +
+          labs(
+            title = paste("Boxplot of", col_name, "in", name),
+            x = "",  # No x-axis for single-variable boxplot
+            y = col_name
+          ) +
+          theme_minimal() -> boxplot
+        
+        print(boxplot)  # Display the plot
+      }
     }
   } else {
     cat("No numerical columns to create boxplots.\n")
