@@ -331,17 +331,17 @@ ui <- fluidPage(
         selectInput("ycol", "Y Variable", NULL),
         numericInput("clusters", "Number of Clusters:", 
                      min = 2, max = 5, value = 3)
+      ),
+      conditionalPanel(
+        condition = "input.tabs == 'Percentage by Parameter'",
+        selectInput(
+          inputId = "circular_param",
+          label = "Select a parameter to view percentages",
+          choices = setdiff(colnames(combined_df), "Team"),
+          selected = "xg"
+        )
       )
     ),
-    conditionalPanel(
-      condition = "input.tabs == 'Percentage by Parameter'",
-      selectInput(
-        inputId = "circular_param",
-        label = "Select a parameter to view percentages",
-        choices = setdiff(colnames(combined_df), "Team"),
-        selected = "xg"
-      )
-    )
   ),
   
   mainPanel(
