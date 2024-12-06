@@ -342,7 +342,6 @@ ui <- fluidPage(
         )
       )
     ),
-  ),
   
   mainPanel(
     tabsetPanel(
@@ -360,6 +359,7 @@ ui <- fluidPage(
                plotOutput("circular_plot")
       )
     )
+  )
   )
 )
 
